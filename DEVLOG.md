@@ -57,6 +57,29 @@ Validation:
   - import/export JSON
   - local persistence
 
+### Functionality pass: working control bar
+
+Issues reported:
+- Live Activity needed to be collapsible instead of simply disappearing.
+- Search, Pause, Ping Sage, and the dropdown controls looked interactive but did nothing.
+
+Fixes applied:
+- Added a real Live Activity toggle in the header plus close control on the rail.
+- Search now opens a command-palette style task search (`⌘K` / `Ctrl+K`).
+- Pause now acts as a write lock / focus mode and blocks mutating actions.
+- Ping Sage now opens a request modal and creates a real Sage task in Today.
+- Focus dropdown now switches owner focus.
+- Mission dropdown now scopes the board by project.
+- Refresh now gives visible state feedback.
+- Added a visible banner for dashboard state changes.
+
+Validation:
+- Control bar now has working first-pass behaviors instead of placeholders.
+- Search can open task detail from results.
+- Pause prevents task creation/edit/import/drag changes until resumed.
+- Ping Sage creates a task and updates Live Activity.
+
 Next likely step:
 - continue improving responsive behavior for smaller heights/widths
 - optionally add collapsible activity rail / nav
+- move utility actions into a cleaner command/overflow menu later

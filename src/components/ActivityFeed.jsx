@@ -1,6 +1,9 @@
+import { ChevronRight } from 'lucide-react'
 import { iconMap } from './IconMap'
 
-export function ActivityFeed({ items }) {
+export function ActivityFeed({ items, isOpen, onClose }) {
+  if (!isOpen) return null
+
   return (
     <aside className="sticky top-0 hidden h-screen w-[18rem] shrink-0 border-l border-zinc-800 bg-zinc-950/95 px-4 py-5 backdrop-blur xl:block 2xl:w-[20rem] 2xl:px-5 2xl:py-6">
       <div className="flex h-full min-h-0 flex-col">
@@ -9,9 +12,9 @@ export function ActivityFeed({ items }) {
             <p className="text-xs uppercase tracking-[0.28em] text-zinc-500">Live</p>
             <h2 className="mt-1 text-base font-semibold text-white 2xl:text-lg">Activity</h2>
           </div>
-          <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] text-emerald-300 ring-1 ring-emerald-500/20 2xl:px-3 2xl:text-xs">
-            Streaming
-          </span>
+          <button onClick={onClose} className="rounded-2xl border border-zinc-800 bg-zinc-900 p-2 text-zinc-400 transition hover:border-zinc-700 hover:text-white">
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="min-h-0 space-y-2.5 overflow-y-auto pr-1 2xl:space-y-3">
