@@ -1,6 +1,6 @@
-import { CheckSquare2, Clock3, Focus, ListTodo } from 'lucide-react'
+import { CheckSquare2, Clock3, Focus } from 'lucide-react'
 
-export function TasksOverview({ priorities, checklist, dueToday }) {
+export function TasksOverview({ priorities, checklist, dueToday, onToggleChecklist }) {
   return (
     <section className="grid gap-5 xl:grid-cols-[1.25fr_0.95fr_0.95fr]">
       <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-glow">
@@ -16,17 +16,17 @@ export function TasksOverview({ priorities, checklist, dueToday }) {
 
         <div className="space-y-3">
           {priorities.map((item, index) => (
-            <article key={item.title} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+            <article key={item.id} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="mb-2 text-xs uppercase tracking-[0.2em] text-zinc-500">Priority 0{index + 1}</div>
                   <h3 className="text-sm font-semibold text-white">{item.title}</h3>
                 </div>
                 <span className={`rounded-full px-2.5 py-1 text-xs ring-1 ${item.ring} ${item.accent}`}>
-                  {item.lane}
+                  {item.status}
                 </span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-zinc-400">{item.note}</p>
+              <p className="mt-3 text-sm leading-6 text-zinc-400">{item.description}</p>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
                 <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-zinc-300">Owner: {item.owner}</span>
                 <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-zinc-300">Project: {item.project}</span>
@@ -49,7 +49,11 @@ export function TasksOverview({ priorities, checklist, dueToday }) {
 
         <div className="space-y-3">
           {checklist.map((item) => (
-            <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+            <button
+              key={item.id}
+              onClick={() => onToggleChecklist(item.id)}
+              className="flex w-full items-start gap-3 rounded-2xl border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:border-zinc-700"
+            >
               <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900">
                 {item.done ? <span className="h-2 w-2 rounded-sm bg-emerald-400" /> : null}
               </div>
@@ -60,7 +64,7 @@ export function TasksOverview({ priorities, checklist, dueToday }) {
                   <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-zinc-300">{item.status}</span>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -78,7 +82,7 @@ export function TasksOverview({ priorities, checklist, dueToday }) {
 
         <div className="space-y-3">
           {dueToday.map((item) => (
-            <article key={item.title} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+            <article key={item.id} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
               <h3 className="text-sm font-semibold text-white">{item.title}</h3>
               <div className="mt-3 space-y-2 text-xs text-zinc-500">
                 <div className="flex items-center justify-between gap-3">
@@ -87,11 +91,11 @@ export function TasksOverview({ priorities, checklist, dueToday }) {
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>Due</span>
-                  <span className="text-zinc-300">{item.due}</span>
+                  <span className="text-zinc-300">{item.dueDate}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>Source</span>
-                  <span className="text-zinc-300">{item.channel}</span>
+                  <span className="text-zinc-300">{item.discordChannel || item.source}</span>
                 </div>
               </div>
             </article>
