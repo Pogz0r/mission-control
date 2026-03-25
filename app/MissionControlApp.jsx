@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
-import { ActivityFeed } from './components/ActivityFeed'
-import { Header } from './components/Header'
-import { KanbanBoard } from './components/KanbanBoard'
-import { SidebarNav } from './components/SidebarNav'
-import { StatsBar } from './components/StatsBar'
-import { TaskDetailPanel } from './components/TaskDetailPanel'
-import { TaskEditor } from './components/TaskEditor'
-import { TasksOverview } from './components/TasksOverview'
-import { Toolbar } from './components/Toolbar'
+'use client'
+
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Download, Upload } from 'lucide-react'
+import { ActivityFeed } from '../src/components/ActivityFeed'
+import { Header } from '../src/components/Header'
+import { KanbanBoard } from '../src/components/KanbanBoard'
+import { SidebarNav } from '../src/components/SidebarNav'
+import { StatsBar } from '../src/components/StatsBar'
+import { TaskDetailPanel } from '../src/components/TaskDetailPanel'
+import { TaskEditor } from '../src/components/TaskEditor'
+import { TasksOverview } from '../src/components/TasksOverview'
+import { Toolbar } from '../src/components/Toolbar'
+import { AgentQueues } from '../src/components/AgentQueues'
 import {
   activityItems,
   filters,
@@ -17,9 +21,9 @@ import {
   priorities,
   sources,
   statuses,
-} from './data/mockData'
+} from '../src/data/mockData'
 
-const STORAGE_KEY = 'mission-control.tasks.v1'
+const STORAGE_KEY = 'mission-control.tasks.v2'
 
 const createEmptyDraft = () => ({
   id: '',
@@ -32,18 +36,20 @@ const createEmptyDraft = () => ({
   source: 'Manual',
   discordChannel: '',
   discordThread: '',
+  discordMessage: '',
+  discordMessageUrl: '',
   project: 'Mission Control',
   tags: '',
   dueDate: '',
   recurring: false,
   notes: '',
+  refs: '[]',
 })
 
-function App() {
-  const [tasks, setTasks] = useState(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY)
-    return saved ? JSON.parse(saved) : initialTasks
-  })
+export default function MissionControlApp() {
+  const fileInputRef = useRef(null)
+  const [mounted, setMounted] = useState(false)
+  const [tasks, setTasks] = useState(initialTasks)
   const [activeFilter, setActiveFilter] = useState('All')
   const [selectedTask, setSelectedTask] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -52,8 +58,20 @@ function App() {
   const [draggingTaskId, setDraggingTaskId] = useState(null)
 
   useEffect(() => {
+    setMounted(true)
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) setTasks(parsed)
+      }
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
-  }, [tasks])
+  }, [mounted, tasks])
 
   const filteredTasks = useMemo(() => {
     if (activeFilter === 'All') return tasks
@@ -118,6 +136,29 @@ function App() {
     return filteredTasks.filter((task) => /today|eod/i.test(task.dueDate || '')).slice(0, 3)
   }, [filteredTasks])
 
+  const agentQueues = useMemo(() => {
+    return owners.map((owner) => {
+      const owned = filteredTasks.filter((task) => task.owner === owner)
+      const today = owned.filter((task) => task.status === 'Today').length
+      const inProgress = owned.filter((task) => task.status === 'In Progress').length
+      const waiting = owned.filter((task) => task.status === 'Waiting').length
+      const done = owned.filter((task) => task.status === 'Done').length
+      const nextUp = owned
+        .filter((task) => task.status !== 'Done')
+        .sort((a, b) => priorityWeight(b.priority) - priorityWeight(a.priority))[0]
+
+      return {
+        owner,
+        total: owned.length,
+        today,
+        inProgress,
+        waiting,
+        done,
+        nextUp,
+      }
+    })
+  }, [filteredTasks])
+
   const openCreateTask = () => {
     setSelectedTask(null)
     setIsDetailOpen(false)
@@ -136,14 +177,13 @@ function App() {
     setDraft({
       ...task,
       tags: (task.tags || []).join(', '),
+      refs: JSON.stringify(task.refs || [], null, 2),
     })
     setIsDetailOpen(false)
     setIsEditorOpen(true)
   }
 
-  const closeDetail = () => {
-    setIsDetailOpen(false)
-  }
+  const closeDetail = () => setIsDetailOpen(false)
 
   const closeEditor = () => {
     setIsEditorOpen(false)
@@ -160,6 +200,7 @@ function App() {
 
   const handleSaveTask = () => {
     const now = new Date().toISOString()
+    const parsedRefs = safeParseRefs(draft.refs)
     const payload = {
       ...draft,
       id: selectedTask?.id || `task-${Date.now()}`,
@@ -167,6 +208,7 @@ function App() {
         .split(',')
         .map((tag) => tag.trim())
         .filter(Boolean),
+      refs: parsedRefs,
       completed: draft.status === 'Done',
       createdAt: selectedTask?.createdAt || now,
       updatedAt: now,
@@ -185,14 +227,8 @@ function App() {
         ? current.map((task) => (task.id === selectedTask.id ? payload : task))
         : [payload, ...current]
 
-      if (selectedTask) {
-        setSelectedTask(payload)
-        setIsDetailOpen(true)
-      } else {
-        setSelectedTask(payload)
-        setIsDetailOpen(true)
-      }
-
+      setSelectedTask(payload)
+      setIsDetailOpen(true)
       return next
     })
 
@@ -220,7 +256,7 @@ function App() {
               history: appendHistory(task.history || [], {
                 id: `history-${Date.now()}`,
                 action: task.status === 'Done' ? 'Checklist reopened' : 'Checklist completed',
-                detail: task.title,
+                detail: task.status === 'Done' ? 'Moved back into Today.' : 'Marked recurring task complete.',
                 time: formatHistoryTime(new Date().toISOString()),
               }),
             }
@@ -229,55 +265,116 @@ function App() {
     )
   }
 
-  const handleDragStart = (taskId) => {
-    setDraggingTaskId(taskId)
-  }
-
-  const handleDragEnd = () => {
-    setDraggingTaskId(null)
-  }
-
   const moveTaskToStatus = (taskId, nextStatus) => {
     setTasks((current) =>
       current.map((task) => {
         if (task.id !== taskId || task.status === nextStatus) return task
-        const now = new Date().toISOString()
         const updated = {
           ...task,
           status: nextStatus,
           completed: nextStatus === 'Done',
-          updatedAt: now,
+          updatedAt: new Date().toISOString(),
           history: appendHistory(task.history || [], {
             id: `history-${Date.now()}`,
-            action: 'Status changed',
-            detail: `${task.status} → ${nextStatus}`,
-            time: formatHistoryTime(now),
+            action: 'Status moved',
+            detail: `Moved from ${task.status} to ${nextStatus}.`,
+            time: formatHistoryTime(new Date().toISOString()),
           }),
         }
-        if (selectedTask?.id === task.id) {
-          setSelectedTask(updated)
-        }
+        if (selectedTask?.id === task.id) setSelectedTask(updated)
         return updated
       }),
     )
   }
 
-  const handleDropTask = (nextStatus) => {
+  const handleDropTask = (status) => {
     if (!draggingTaskId) return
-    moveTaskToStatus(draggingTaskId, nextStatus)
+    moveTaskToStatus(draggingTaskId, status)
     setDraggingTaskId(null)
+  }
+
+  const handleExportJson = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: 2,
+      tasks,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `mission-control-${new Date().toISOString().slice(0, 10)}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportJson = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text)
+      const nextTasks = Array.isArray(parsed) ? parsed : parsed.tasks
+      if (!Array.isArray(nextTasks)) throw new Error('Invalid import format')
+      setTasks(nextTasks)
+      setSelectedTask(null)
+      setIsDetailOpen(false)
+    } catch (error) {
+      window.alert('Could not import JSON. Expected an array of tasks or { tasks: [...] }.')
+    } finally {
+      event.target.value = ''
+    }
   }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <SidebarNav items={navItems} />
-      <ActivityFeed items={activityItems} />
+      <Header
+        actions={
+          <>
+            <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={handleImportJson} />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800"
+            >
+              <Upload className="h-4 w-4" />
+              Import JSON
+            </button>
+            <button
+              onClick={handleExportJson}
+              className="inline-flex items-center gap-2 rounded-2xl bg-sky-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-400"
+            >
+              <Download className="h-4 w-4" />
+              Export JSON
+            </button>
+          </>
+        }
+      />
+
+      <div className="pl-24 2xl:pr-[22rem]">
+        <main className="space-y-6 px-6 py-6">
+          <StatsBar stats={stats} />
+          <Toolbar filters={filters} activeFilter={activeFilter} onFilterChange={setActiveFilter} onCreateTask={openCreateTask} />
+          <TasksOverview priorities={topPriorities} checklist={recurringChecklist} dueToday={dueToday} onToggleChecklist={toggleChecklistTask} />
+          <AgentQueues queues={agentQueues} onSelectTask={openDetailTask} />
+          <KanbanBoard
+            columns={columns}
+            onSelectTask={openDetailTask}
+            onDropTask={handleDropTask}
+            draggingTaskId={draggingTaskId}
+            onDragStart={setDraggingTaskId}
+            onDragEnd={() => setDraggingTaskId(null)}
+          />
+        </main>
+      </div>
+
       <TaskDetailPanel
         task={selectedTask}
         isOpen={isDetailOpen}
         onClose={closeDetail}
         onEdit={() => openEditTask(selectedTask)}
-        onMove={(status) => moveTaskToStatus(selectedTask?.id, status)}
+        onMove={(status) => selectedTask && moveTaskToStatus(selectedTask.id, status)}
       />
       <TaskEditor
         isOpen={isEditorOpen}
@@ -292,53 +389,34 @@ function App() {
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}
       />
-
-      <div className="pl-24 2xl:pr-[22rem]">
-        <Header />
-
-        <main className="space-y-6 px-6 py-6">
-          <StatsBar stats={stats} />
-          <Toolbar
-            filters={filters}
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
-            onCreateTask={openCreateTask}
-          />
-          <TasksOverview
-            priorities={topPriorities}
-            checklist={recurringChecklist}
-            dueToday={dueToday}
-            onToggleChecklist={toggleChecklistTask}
-          />
-
-          <div className="overflow-x-auto pb-4">
-            <KanbanBoard
-              columns={columns}
-              onSelectTask={openDetailTask}
-              onDropTask={handleDropTask}
-              draggingTaskId={draggingTaskId}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            />
-          </div>
-        </main>
-      </div>
+      <ActivityFeed items={activityItems} />
     </div>
   )
 }
 
-function priorityWeight(priority) {
-  if (priority === 'High') return 3
-  if (priority === 'Medium') return 2
-  return 1
+function safeParseRefs(value) {
+  if (!value?.trim()) return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
 }
 
 function appendHistory(history, entry) {
-  return [entry, ...history].slice(0, 20)
+  return [entry, ...history].slice(0, 12)
+}
+
+function priorityWeight(priority) {
+  return { High: 3, Medium: 2, Low: 1 }[priority] || 0
 }
 
 function formatHistoryTime(value) {
-  return new Date(value).toLocaleString()
+  return new Date(value).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
-
-export default App
