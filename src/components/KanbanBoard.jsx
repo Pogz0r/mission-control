@@ -27,14 +27,19 @@ const initials = (name) =>
     .slice(0, 2)
     .toUpperCase()
 
-export function KanbanBoard({ columns, onSelectTask }) {
+export function KanbanBoard({ columns, onSelectTask, onDropTask, draggingTaskId, onDragStart, onDragEnd }) {
   return (
     <section className="grid min-w-max grid-cols-4 gap-5 xl:min-w-0 xl:grid-cols-4">
       {columns.map((column) => {
         const config = statusConfig[column.title]
 
         return (
-          <div key={column.title} className="rounded-3xl border border-zinc-800 bg-zinc-900 p-4 shadow-glow">
+          <div
+            key={column.title}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={() => onDropTask(column.title)}
+            className="rounded-3xl border border-zinc-800 bg-zinc-900 p-4 shadow-glow"
+          >
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className={`h-2.5 w-2.5 rounded-full ${config.accent}`} />
@@ -43,12 +48,17 @@ export function KanbanBoard({ columns, onSelectTask }) {
               <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-400">{column.tasks.length}</span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 min-h-24">
               {column.tasks.map((task) => (
                 <button
                   key={task.id}
+                  draggable
+                  onDragStart={() => onDragStart(task.id)}
+                  onDragEnd={onDragEnd}
                   onClick={() => onSelectTask(task)}
-                  className="block w-full rounded-2xl border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:-translate-y-0.5 hover:border-zinc-700 hover:bg-zinc-900"
+                  className={`block w-full rounded-2xl border border-zinc-800 bg-zinc-950 p-4 text-left transition hover:-translate-y-0.5 hover:border-zinc-700 hover:bg-zinc-900 ${
+                    draggingTaskId === task.id ? 'opacity-40' : ''
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">

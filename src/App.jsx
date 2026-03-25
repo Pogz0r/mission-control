@@ -4,6 +4,7 @@ import { Header } from './components/Header'
 import { KanbanBoard } from './components/KanbanBoard'
 import { SidebarNav } from './components/SidebarNav'
 import { StatsBar } from './components/StatsBar'
+import { TaskDetailPanel } from './components/TaskDetailPanel'
 import { TaskEditor } from './components/TaskEditor'
 import { TasksOverview } from './components/TasksOverview'
 import { Toolbar } from './components/Toolbar'
@@ -45,8 +46,10 @@ function App() {
   })
   const [activeFilter, setActiveFilter] = useState('All')
   const [selectedTask, setSelectedTask] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [draft, setDraft] = useState(createEmptyDraft())
+  const [draggingTaskId, setDraggingTaskId] = useState(null)
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
@@ -117,22 +120,33 @@ function App() {
 
   const openCreateTask = () => {
     setSelectedTask(null)
+    setIsDetailOpen(false)
     setDraft(createEmptyDraft())
     setIsEditorOpen(true)
   }
 
-  const openEditTask = (task) => {
+  const openDetailTask = (task) => {
+    setSelectedTask(task)
+    setIsDetailOpen(true)
+  }
+
+  const openEditTask = (task = selectedTask) => {
+    if (!task) return
     setSelectedTask(task)
     setDraft({
       ...task,
       tags: (task.tags || []).join(', '),
     })
+    setIsDetailOpen(false)
     setIsEditorOpen(true)
+  }
+
+  const closeDetail = () => {
+    setIsDetailOpen(false)
   }
 
   const closeEditor = () => {
     setIsEditorOpen(false)
-    setSelectedTask(null)
     setDraft(createEmptyDraft())
   }
 
@@ -156,22 +170,42 @@ function App() {
       completed: draft.status === 'Done',
       createdAt: selectedTask?.createdAt || now,
       updatedAt: now,
+      history: appendHistory(selectedTask?.history || [], {
+        id: `history-${Date.now()}`,
+        action: selectedTask ? 'Task updated' : 'Task created',
+        detail: selectedTask
+          ? `Saved changes to ${draft.title || 'untitled task'}.`
+          : `Created ${draft.title || 'untitled task'} and assigned it to ${draft.owner}.`,
+        time: formatHistoryTime(now),
+      }),
     }
 
     setTasks((current) => {
+      const next = selectedTask
+        ? current.map((task) => (task.id === selectedTask.id ? payload : task))
+        : [payload, ...current]
+
       if (selectedTask) {
-        return current.map((task) => (task.id === selectedTask.id ? payload : task))
+        setSelectedTask(payload)
+        setIsDetailOpen(true)
+      } else {
+        setSelectedTask(payload)
+        setIsDetailOpen(true)
       }
-      return [payload, ...current]
+
+      return next
     })
 
-    closeEditor()
+    setIsEditorOpen(false)
   }
 
   const handleDeleteTask = () => {
     if (!selectedTask) return
     setTasks((current) => current.filter((task) => task.id !== selectedTask.id))
-    closeEditor()
+    setSelectedTask(null)
+    setIsDetailOpen(false)
+    setIsEditorOpen(false)
+    setDraft(createEmptyDraft())
   }
 
   const toggleChecklistTask = (taskId) => {
@@ -183,16 +217,68 @@ function App() {
               status: task.status === 'Done' ? 'Today' : 'Done',
               completed: task.status !== 'Done',
               updatedAt: new Date().toISOString(),
+              history: appendHistory(task.history || [], {
+                id: `history-${Date.now()}`,
+                action: task.status === 'Done' ? 'Checklist reopened' : 'Checklist completed',
+                detail: task.title,
+                time: formatHistoryTime(new Date().toISOString()),
+              }),
             }
           : task,
       ),
     )
   }
 
+  const handleDragStart = (taskId) => {
+    setDraggingTaskId(taskId)
+  }
+
+  const handleDragEnd = () => {
+    setDraggingTaskId(null)
+  }
+
+  const moveTaskToStatus = (taskId, nextStatus) => {
+    setTasks((current) =>
+      current.map((task) => {
+        if (task.id !== taskId || task.status === nextStatus) return task
+        const now = new Date().toISOString()
+        const updated = {
+          ...task,
+          status: nextStatus,
+          completed: nextStatus === 'Done',
+          updatedAt: now,
+          history: appendHistory(task.history || [], {
+            id: `history-${Date.now()}`,
+            action: 'Status changed',
+            detail: `${task.status} → ${nextStatus}`,
+            time: formatHistoryTime(now),
+          }),
+        }
+        if (selectedTask?.id === task.id) {
+          setSelectedTask(updated)
+        }
+        return updated
+      }),
+    )
+  }
+
+  const handleDropTask = (nextStatus) => {
+    if (!draggingTaskId) return
+    moveTaskToStatus(draggingTaskId, nextStatus)
+    setDraggingTaskId(null)
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <SidebarNav items={navItems} />
       <ActivityFeed items={activityItems} />
+      <TaskDetailPanel
+        task={selectedTask}
+        isOpen={isDetailOpen}
+        onClose={closeDetail}
+        onEdit={() => openEditTask(selectedTask)}
+        onMove={(status) => moveTaskToStatus(selectedTask?.id, status)}
+      />
       <TaskEditor
         isOpen={isEditorOpen}
         task={selectedTask}
@@ -226,7 +312,14 @@ function App() {
           />
 
           <div className="overflow-x-auto pb-4">
-            <KanbanBoard columns={columns} onSelectTask={openEditTask} />
+            <KanbanBoard
+              columns={columns}
+              onSelectTask={openDetailTask}
+              onDropTask={handleDropTask}
+              draggingTaskId={draggingTaskId}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            />
           </div>
         </main>
       </div>
@@ -238,6 +331,14 @@ function priorityWeight(priority) {
   if (priority === 'High') return 3
   if (priority === 'Medium') return 2
   return 1
+}
+
+function appendHistory(history, entry) {
+  return [entry, ...history].slice(0, 20)
+}
+
+function formatHistoryTime(value) {
+  return new Date(value).toLocaleString()
 }
 
 export default App
