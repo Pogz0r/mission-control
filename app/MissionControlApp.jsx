@@ -147,15 +147,7 @@ export default function MissionControlApp() {
         .filter((task) => task.status !== 'Done')
         .sort((a, b) => priorityWeight(b.priority) - priorityWeight(a.priority))[0]
 
-      return {
-        owner,
-        total: owned.length,
-        today,
-        inProgress,
-        waiting,
-        done,
-        nextUp,
-      }
+      return { owner, total: owned.length, today, inProgress, waiting, done, nextUp }
     })
   }, [filteredTasks])
 
@@ -204,10 +196,7 @@ export default function MissionControlApp() {
     const payload = {
       ...draft,
       id: selectedTask?.id || `task-${Date.now()}`,
-      tags: draft.tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: draft.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
       refs: parsedRefs,
       completed: draft.status === 'Done',
       createdAt: selectedTask?.createdAt || now,
@@ -226,7 +215,6 @@ export default function MissionControlApp() {
       const next = selectedTask
         ? current.map((task) => (task.id === selectedTask.id ? payload : task))
         : [payload, ...current]
-
       setSelectedTask(payload)
       setIsDetailOpen(true)
       return next
@@ -294,11 +282,7 @@ export default function MissionControlApp() {
   }
 
   const handleExportJson = () => {
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      version: 2,
-      tasks,
-    }
+    const payload = { exportedAt: new Date().toISOString(), version: 2, tasks }
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -320,7 +304,7 @@ export default function MissionControlApp() {
       setTasks(nextTasks)
       setSelectedTask(null)
       setIsDetailOpen(false)
-    } catch (error) {
+    } catch {
       window.alert('Could not import JSON. Expected an array of tasks or { tasks: [...] }.')
     } finally {
       event.target.value = ''
@@ -328,7 +312,7 @@ export default function MissionControlApp() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen overflow-x-hidden bg-zinc-950 text-white">
       <SidebarNav items={navItems} />
       <Header
         actions={
@@ -336,14 +320,14 @@ export default function MissionControlApp() {
             <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={handleImportJson} />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800"
+              className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800 lg:px-4 lg:py-2.5 lg:text-sm"
             >
               <Upload className="h-4 w-4" />
               Import JSON
             </button>
             <button
               onClick={handleExportJson}
-              className="inline-flex items-center gap-2 rounded-2xl bg-sky-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-400"
+              className="inline-flex items-center gap-2 rounded-2xl bg-sky-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-sky-400 lg:px-4 lg:py-2.5 lg:text-sm"
             >
               <Download className="h-4 w-4" />
               Export JSON
@@ -352,20 +336,22 @@ export default function MissionControlApp() {
         }
       />
 
-      <div className="pl-24 2xl:pr-[22rem]">
-        <main className="space-y-6 px-6 py-6">
+      <div className="pl-16 xl:pr-[18rem] lg:pl-20 2xl:pl-24 2xl:pr-[20rem]">
+        <main className="space-y-5 px-4 py-4 sm:px-5 lg:space-y-6 lg:px-6 lg:py-6">
           <StatsBar stats={stats} />
           <Toolbar filters={filters} activeFilter={activeFilter} onFilterChange={setActiveFilter} onCreateTask={openCreateTask} />
           <TasksOverview priorities={topPriorities} checklist={recurringChecklist} dueToday={dueToday} onToggleChecklist={toggleChecklistTask} />
           <AgentQueues queues={agentQueues} onSelectTask={openDetailTask} />
-          <KanbanBoard
-            columns={columns}
-            onSelectTask={openDetailTask}
-            onDropTask={handleDropTask}
-            draggingTaskId={draggingTaskId}
-            onDragStart={setDraggingTaskId}
-            onDragEnd={() => setDraggingTaskId(null)}
-          />
+          <div className="overflow-x-auto pb-4">
+            <KanbanBoard
+              columns={columns}
+              onSelectTask={openDetailTask}
+              onDropTask={handleDropTask}
+              draggingTaskId={draggingTaskId}
+              onDragStart={setDraggingTaskId}
+              onDragEnd={() => setDraggingTaskId(null)}
+            />
+          </div>
         </main>
       </div>
 
