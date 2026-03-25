@@ -2,7 +2,7 @@ import { iconMap } from './IconMap'
 
 export function SidebarNav({ items }) {
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 w-16 border-r border-zinc-800 bg-zinc-950/95 px-2 py-4 backdrop-blur lg:w-20 lg:px-2.5 lg:py-6 2xl:w-24 2xl:px-3">
+    <aside className="sticky top-0 h-screen w-16 shrink-0 border-r border-zinc-800 bg-zinc-950/95 px-2 py-4 backdrop-blur lg:w-20 lg:px-2.5 lg:py-6 2xl:w-24 2xl:px-3">
       <div className="mb-6 flex items-center justify-center lg:mb-8">
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/20 lg:h-11 lg:w-11">
           <span className="text-sm font-semibold lg:text-lg">MC</span>

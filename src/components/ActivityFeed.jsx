@@ -2,8 +2,8 @@ import { iconMap } from './IconMap'
 
 export function ActivityFeed({ items }) {
   return (
-    <aside className="fixed inset-y-0 right-0 hidden w-[18rem] border-l border-zinc-800 bg-zinc-950/95 px-4 py-5 backdrop-blur xl:block 2xl:w-[20rem] 2xl:px-5 2xl:py-6">
-      <div className="flex h-full flex-col">
+    <aside className="sticky top-0 hidden h-screen w-[18rem] shrink-0 border-l border-zinc-800 bg-zinc-950/95 px-4 py-5 backdrop-blur xl:block 2xl:w-[20rem] 2xl:px-5 2xl:py-6">
+      <div className="flex h-full min-h-0 flex-col">
         <div className="mb-5 flex items-center justify-between 2xl:mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.28em] text-zinc-500">Live</p>
@@ -14,7 +14,7 @@ export function ActivityFeed({ items }) {
           </span>
         </div>
 
-        <div className="space-y-2.5 overflow-y-auto pr-1 2xl:space-y-3">
+        <div className="min-h-0 space-y-2.5 overflow-y-auto pr-1 2xl:space-y-3">
           {items.map((item, index) => {
             const Icon = iconMap[item.icon]
             return (

@@ -312,47 +312,52 @@ export default function MissionControlApp() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-zinc-950 text-white">
+    <div className="flex min-h-screen bg-zinc-950 text-white">
       <SidebarNav items={navItems} />
-      <Header
-        actions={
-          <>
-            <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={handleImportJson} />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800 lg:px-4 lg:py-2.5 lg:text-sm"
-            >
-              <Upload className="h-4 w-4" />
-              Import JSON
-            </button>
-            <button
-              onClick={handleExportJson}
-              className="inline-flex items-center gap-2 rounded-2xl bg-sky-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-sky-400 lg:px-4 lg:py-2.5 lg:text-sm"
-            >
-              <Download className="h-4 w-4" />
-              Export JSON
-            </button>
-          </>
-        }
-      />
 
-      <div className="pl-16 xl:pr-[18rem] lg:pl-20 2xl:pl-24 2xl:pr-[20rem]">
-        <main className="space-y-5 px-4 py-4 sm:px-5 lg:space-y-6 lg:px-6 lg:py-6">
-          <StatsBar stats={stats} />
-          <Toolbar filters={filters} activeFilter={activeFilter} onFilterChange={setActiveFilter} onCreateTask={openCreateTask} />
-          <TasksOverview priorities={topPriorities} checklist={recurringChecklist} dueToday={dueToday} onToggleChecklist={toggleChecklistTask} />
-          <AgentQueues queues={agentQueues} onSelectTask={openDetailTask} />
-          <div className="overflow-x-auto pb-4">
-            <KanbanBoard
-              columns={columns}
-              onSelectTask={openDetailTask}
-              onDropTask={handleDropTask}
-              draggingTaskId={draggingTaskId}
-              onDragStart={setDraggingTaskId}
-              onDragEnd={() => setDraggingTaskId(null)}
-            />
-          </div>
-        </main>
+      <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
+        <div className="min-w-0 flex-1 overflow-x-hidden">
+          <Header
+            actions={
+              <>
+                <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={handleImportJson} />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800 lg:px-4 lg:py-2.5 lg:text-sm"
+                >
+                  <Upload className="h-4 w-4" />
+                  Import JSON
+                </button>
+                <button
+                  onClick={handleExportJson}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-sky-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-sky-400 lg:px-4 lg:py-2.5 lg:text-sm"
+                >
+                  <Download className="h-4 w-4" />
+                  Export JSON
+                </button>
+              </>
+            }
+          />
+
+          <main className="min-w-0 space-y-5 overflow-x-hidden px-4 py-4 sm:px-5 lg:space-y-6 lg:px-6 lg:py-6">
+            <StatsBar stats={stats} />
+            <Toolbar filters={filters} activeFilter={activeFilter} onFilterChange={setActiveFilter} onCreateTask={openCreateTask} />
+            <TasksOverview priorities={topPriorities} checklist={recurringChecklist} dueToday={dueToday} onToggleChecklist={toggleChecklistTask} />
+            <AgentQueues queues={agentQueues} onSelectTask={openDetailTask} />
+            <div className="min-w-0 overflow-x-auto pb-4">
+              <KanbanBoard
+                columns={columns}
+                onSelectTask={openDetailTask}
+                onDropTask={handleDropTask}
+                draggingTaskId={draggingTaskId}
+                onDragStart={setDraggingTaskId}
+                onDragEnd={() => setDraggingTaskId(null)}
+              />
+            </div>
+          </main>
+        </div>
+
+        <ActivityFeed items={activityItems} />
       </div>
 
       <TaskDetailPanel
@@ -375,7 +380,6 @@ export default function MissionControlApp() {
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}
       />
-      <ActivityFeed items={activityItems} />
     </div>
   )
 }

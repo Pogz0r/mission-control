@@ -4,6 +4,31 @@
 
 ### Bugfix pass: browser fit + hydration warning handling
 
+### Bugfix pass: true flex shell layout + dev indicator cleanup
+
+Issues reported:
+- Center Mission Control content was bleeding underneath the left/right rails.
+- A bottom-left issue badge was still visible in local dev.
+
+Findings:
+- The shell still relied on offset spacing rather than a true three-column layout.
+- That made the center area visually overlap under fixed sidebars.
+- The bottom-left badge was Next.js dev indicators, which add noise during local review.
+
+Fixes applied:
+- Rebuilt the shell as a real flex layout.
+- Left sidebar is now a fixed-width flex child.
+- Center workspace is now `flex: 1` with `min-width: 0` and overflow protection.
+- Right activity rail is now a fixed-width flex child on `xl+`.
+- Sidebars use sticky positioning instead of floating over the center content.
+- Disabled Next dev indicators in `next.config.mjs` for cleaner local review.
+
+Validation:
+- Layout structure now respects sidebar boundaries by construction.
+- Center content can shrink without bleeding under the rails.
+- The local dev screen should no longer show the bottom-left Next issue badge.
+
+
 Issues reported:
 - Mission Control felt too wide/dense for a normal laptop browser window.
 - Console showed a hydration mismatch warning in Next.js.
