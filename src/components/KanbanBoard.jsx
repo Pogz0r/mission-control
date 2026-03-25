@@ -8,9 +8,7 @@ export function KanbanBoard({ columns }) {
               <span className={`h-2.5 w-2.5 rounded-full ${column.accent}`} />
               <h2 className="text-sm font-semibold text-white">{column.title}</h2>
             </div>
-            <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-400">
-              {column.count}
-            </span>
+            <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-400">{column.count}</span>
           </div>
 
           <div className="space-y-3">
@@ -27,16 +25,35 @@ export function KanbanBoard({ columns }) {
                     </div>
                     <h3 className="text-sm font-semibold text-white">{card.title}</h3>
                   </div>
+                  <span className="rounded-full bg-zinc-900 px-2 py-1 text-[10px] uppercase tracking-[0.22em] text-zinc-500">
+                    {card.priority}
+                  </span>
                 </div>
+
                 <p className="mt-3 line-clamp-2 text-sm leading-6 text-zinc-400">{card.description}</p>
-                <div className="mt-4 flex items-center justify-between gap-3">
+
+                <div className="mt-4 grid gap-2 text-xs text-zinc-500">
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Project</span>
+                    <span className="text-zinc-300">{card.project}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Source</span>
+                    <span className="truncate text-zinc-300">{card.source}</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-zinc-800 pt-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-xs font-semibold text-white">
                       {card.owner}
                     </div>
-                    <span className={`rounded-full px-2.5 py-1 text-xs ring-1 ${card.tagClass}`}>
-                      {card.tag}
-                    </span>
+                    <div>
+                      <div className="text-xs font-medium text-zinc-200">{card.ownerName}</div>
+                      <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs ring-1 ${card.tagClass}`}>
+                        {card.tag}
+                      </span>
+                    </div>
                   </div>
                   <span className="text-xs text-zinc-500">{card.time}</span>
                 </div>

@@ -1,4 +1,4 @@
-import { BellDot, Command, Pause, Rocket, Search, Send, RefreshCw } from 'lucide-react'
+import { Pause, Rocket, Search, Send, RefreshCw } from 'lucide-react'
 
 export function Header() {
   return (
@@ -17,9 +17,7 @@ export function Header() {
         <button className="hidden items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-400 transition hover:border-zinc-700 hover:text-white md:flex">
           <Search className="h-4 w-4" />
           <span>Search</span>
-          <span className="rounded-lg border border-zinc-700 px-2 py-0.5 text-xs text-zinc-500">
-            ⌘K
-          </span>
+          <span className="rounded-lg border border-zinc-700 px-2 py-0.5 text-xs text-zinc-500">⌘K</span>
         </button>
         <button className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800">
           <Pause className="h-4 w-4" />
@@ -27,7 +25,7 @@ export function Header() {
         </button>
         <button className="inline-flex items-center gap-2 rounded-2xl bg-violet-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-violet-400">
           <Send className="h-4 w-4" />
-          Ping Henry
+          Ping Sage
         </button>
         <button className="flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-400 transition hover:border-zinc-700 hover:text-white">
           <RefreshCw className="h-4 w-4" />
