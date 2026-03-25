@@ -65,6 +65,7 @@ Issues reported:
 
 Fixes applied:
 - Added a real Live Activity toggle in the header plus close control on the rail.
+- Reworked Live Activity from a docked layout section into a right-side overlay drawer with backdrop and Escape-to-close behavior.
 - Search now opens a command-palette style task search (`⌘K` / `Ctrl+K`).
 - Pause now acts as a write lock / focus mode and blocks mutating actions.
 - Ping Sage now opens a request modal and creates a real Sage task in Today.

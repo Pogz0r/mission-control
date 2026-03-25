@@ -71,7 +71,7 @@ export default function MissionControlApp() {
   const [draft, setDraft] = useState(createEmptyDraft())
   const [draggingTaskId, setDraggingTaskId] = useState(null)
   const [isPaused, setIsPaused] = useState(false)
-  const [isActivityOpen, setIsActivityOpen] = useState(true)
+  const [isActivityOpen, setIsActivityOpen] = useState(false)
   const [banner, setBanner] = useState('')
   const [feedItems, setFeedItems] = useState(activityItems)
 
@@ -115,6 +115,7 @@ export default function MissionControlApp() {
       if (event.key === 'Escape') {
         setIsSearchOpen(false)
         setIsPingOpen(false)
+        setIsActivityOpen(false)
       }
     }
 
@@ -479,77 +480,74 @@ export default function MissionControlApp() {
     <div className="flex min-h-screen bg-zinc-950 text-white">
       <SidebarNav items={navItems} />
 
-      <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
-        <div className="min-w-0 flex-1 overflow-x-hidden">
-          <Header
-            isPaused={isPaused}
-            onTogglePause={handleTogglePause}
-            onPingSage={() => setIsPingOpen(true)}
-            onSearchOpen={() => setIsSearchOpen(true)}
-            onRefresh={handleRefresh}
-            isActivityOpen={isActivityOpen}
-            onToggleActivity={() => setIsActivityOpen((current) => !current)}
-            actions={
-              <>
-                <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={handleImportJson} />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800 lg:px-4 lg:py-2.5 lg:text-sm"
-                >
-                  <Upload className="h-4 w-4" />
-                  Import JSON
-                </button>
-                <button
-                  onClick={handleExportJson}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-sky-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-sky-400 lg:px-4 lg:py-2.5 lg:text-sm"
-                >
-                  <Download className="h-4 w-4" />
-                  Export JSON
-                </button>
-              </>
-            }
-          />
+      <div className="min-w-0 flex-1 overflow-x-hidden">
+        <Header
+          isPaused={isPaused}
+          onTogglePause={handleTogglePause}
+          onPingSage={() => setIsPingOpen(true)}
+          onSearchOpen={() => setIsSearchOpen(true)}
+          onRefresh={handleRefresh}
+          isActivityOpen={isActivityOpen}
+          onToggleActivity={() => setIsActivityOpen((current) => !current)}
+          actions={
+            <>
+              <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={handleImportJson} />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800 lg:px-4 lg:py-2.5 lg:text-sm"
+              >
+                <Upload className="h-4 w-4" />
+                Import JSON
+              </button>
+              <button
+                onClick={handleExportJson}
+                className="inline-flex items-center gap-2 rounded-2xl bg-sky-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-sky-400 lg:px-4 lg:py-2.5 lg:text-sm"
+              >
+                <Download className="h-4 w-4" />
+                Export JSON
+              </button>
+            </>
+          }
+        />
 
-          <main className="min-w-0 space-y-5 overflow-x-hidden px-4 py-4 sm:px-5 lg:space-y-6 lg:px-6 lg:py-6">
-            {(banner || isPaused) ? (
-              <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm shadow-glow ${
-                isPaused
-                  ? 'border-orange-500/20 bg-orange-500/10 text-orange-200'
-                  : 'border-sky-500/20 bg-sky-500/10 text-sky-100'
-              }`}>
-                <BellRing className="h-4 w-4" />
-                <span>{banner || 'Mission Control is paused.'}</span>
-              </div>
-            ) : null}
-
-            <StatsBar stats={stats} />
-            <Toolbar
-              filters={filters}
-              activeFilter={activeFilter}
-              onFilterChange={setActiveFilter}
-              onCreateTask={openCreateTask}
-              isPaused={isPaused}
-              missionScope={missionScope}
-              onMissionScopeChange={setMissionScope}
-            />
-            <TasksOverview priorities={topPriorities} checklist={recurringChecklist} dueToday={dueToday} onToggleChecklist={toggleChecklistTask} />
-            <AgentQueues queues={agentQueues} onSelectTask={openDetailTask} />
-            <div className="min-w-0 overflow-x-auto pb-4">
-              <KanbanBoard
-                columns={columns}
-                onSelectTask={openDetailTask}
-                onDropTask={handleDropTask}
-                draggingTaskId={draggingTaskId}
-                onDragStart={setDraggingTaskId}
-                onDragEnd={() => setDraggingTaskId(null)}
-              />
+        <main className="min-w-0 space-y-5 overflow-x-hidden px-4 py-4 sm:px-5 lg:space-y-6 lg:px-6 lg:py-6">
+          {(banner || isPaused) ? (
+            <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm shadow-glow ${
+              isPaused
+                ? 'border-orange-500/20 bg-orange-500/10 text-orange-200'
+                : 'border-sky-500/20 bg-sky-500/10 text-sky-100'
+            }`}>
+              <BellRing className="h-4 w-4" />
+              <span>{banner || 'Mission Control is paused.'}</span>
             </div>
-          </main>
-        </div>
+          ) : null}
 
-        <ActivityFeed items={feedItems} isOpen={isActivityOpen} onClose={() => setIsActivityOpen(false)} />
+          <StatsBar stats={stats} />
+          <Toolbar
+            filters={filters}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            onCreateTask={openCreateTask}
+            isPaused={isPaused}
+            missionScope={missionScope}
+            onMissionScopeChange={setMissionScope}
+          />
+          <TasksOverview priorities={topPriorities} checklist={recurringChecklist} dueToday={dueToday} onToggleChecklist={toggleChecklistTask} />
+          <AgentQueues queues={agentQueues} onSelectTask={openDetailTask} />
+          <div className="min-w-0 overflow-x-auto pb-4">
+            <KanbanBoard
+              columns={columns}
+              onSelectTask={openDetailTask}
+              onDropTask={handleDropTask}
+              draggingTaskId={draggingTaskId}
+              onDragStart={setDraggingTaskId}
+              onDragEnd={() => setDraggingTaskId(null)}
+            />
+          </div>
+        </main>
       </div>
 
+      <ActivityFeed items={feedItems} isOpen={isActivityOpen} onClose={() => setIsActivityOpen(false)} />
       <SearchDialog
         isOpen={isSearchOpen}
         query={searchQuery}

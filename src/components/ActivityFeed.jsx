@@ -5,8 +5,14 @@ export function ActivityFeed({ items, isOpen, onClose }) {
   if (!isOpen) return null
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[18rem] shrink-0 border-l border-zinc-800 bg-zinc-950/95 px-4 py-5 backdrop-blur xl:block 2xl:w-[20rem] 2xl:px-5 2xl:py-6">
-      <div className="flex h-full min-h-0 flex-col">
+    <div className="fixed inset-0 z-40">
+      <button
+        aria-label="Close activity feed"
+        onClick={onClose}
+        className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
+      />
+
+      <aside className="absolute inset-y-0 right-0 flex h-full w-full max-w-[24rem] flex-col border-l border-zinc-800 bg-zinc-950/95 px-4 py-5 shadow-2xl backdrop-blur xl:max-w-[20rem] 2xl:max-w-[22rem] 2xl:px-5 2xl:py-6">
         <div className="mb-5 flex items-center justify-between 2xl:mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.28em] text-zinc-500">Live</p>
@@ -17,7 +23,7 @@ export function ActivityFeed({ items, isOpen, onClose }) {
           </button>
         </div>
 
-        <div className="min-h-0 space-y-2.5 overflow-y-auto pr-1 2xl:space-y-3">
+        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-1 2xl:space-y-3">
           {items.map((item, index) => {
             const Icon = iconMap[item.icon]
             return (
@@ -38,7 +44,7 @@ export function ActivityFeed({ items, isOpen, onClose }) {
             )
           })}
         </div>
-      </div>
-    </aside>
+      </aside>
+    </div>
   )
 }
