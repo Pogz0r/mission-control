@@ -14,6 +14,7 @@ import { TaskEditor } from '../src/components/TaskEditor'
 import { TasksOverview } from '../src/components/TasksOverview'
 import { Toolbar } from '../src/components/Toolbar'
 import { AgentQueues } from '../src/components/AgentQueues'
+import { DiscordSync } from '../src/components/DiscordSync'
 import {
   activityItems,
   filters,
@@ -74,6 +75,7 @@ export default function MissionControlApp() {
   const [isActivityOpen, setIsActivityOpen] = useState(false)
   const [banner, setBanner] = useState('')
   const [feedItems, setFeedItems] = useState(activityItems)
+  const [activeView, setActiveView] = useState('tasks')
 
   useEffect(() => {
     setMounted(true)
@@ -478,7 +480,7 @@ export default function MissionControlApp() {
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white">
-      <SidebarNav items={navItems} />
+      <SidebarNav items={navItems} activeView={activeView} onViewChange={setActiveView} />
 
       <div className="min-w-0 flex-1 overflow-x-hidden">
         <Header
@@ -511,39 +513,47 @@ export default function MissionControlApp() {
         />
 
         <main className="min-w-0 space-y-5 overflow-x-hidden px-4 py-4 sm:px-5 lg:space-y-6 lg:px-6 lg:py-6">
-          {(banner || isPaused) ? (
-            <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm shadow-glow ${
-              isPaused
-                ? 'border-orange-500/20 bg-orange-500/10 text-orange-200'
-                : 'border-sky-500/20 bg-sky-500/10 text-sky-100'
-            }`}>
-              <BellRing className="h-4 w-4" />
-              <span>{banner || 'Mission Control is paused.'}</span>
+          {activeView === 'discord' ? (
+            <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+              <DiscordSync className="lg:col-span-2 xl:col-span-3" />
             </div>
-          ) : null}
+          ) : (
+            <>
+              {(banner || isPaused) ? (
+                <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm shadow-glow ${
+                  isPaused
+                    ? 'border-orange-500/20 bg-orange-500/10 text-orange-200'
+                    : 'border-sky-500/20 bg-sky-500/10 text-sky-100'
+                }`}>
+                  <BellRing className="h-4 w-4" />
+                  <span>{banner || 'Mission Control is paused.'}</span>
+                </div>
+              ) : null}
 
-          <StatsBar stats={stats} />
-          <Toolbar
-            filters={filters}
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
-            onCreateTask={openCreateTask}
-            isPaused={isPaused}
-            missionScope={missionScope}
-            onMissionScopeChange={setMissionScope}
-          />
-          <TasksOverview priorities={topPriorities} checklist={recurringChecklist} dueToday={dueToday} onToggleChecklist={toggleChecklistTask} />
-          <AgentQueues queues={agentQueues} onSelectTask={openDetailTask} />
-          <div className="min-w-0 overflow-x-auto pb-4">
-            <KanbanBoard
-              columns={columns}
-              onSelectTask={openDetailTask}
-              onDropTask={handleDropTask}
-              draggingTaskId={draggingTaskId}
-              onDragStart={setDraggingTaskId}
-              onDragEnd={() => setDraggingTaskId(null)}
-            />
-          </div>
+              <StatsBar stats={stats} />
+              <Toolbar
+                filters={filters}
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
+                onCreateTask={openCreateTask}
+                isPaused={isPaused}
+                missionScope={missionScope}
+                onMissionScopeChange={setMissionScope}
+              />
+              <TasksOverview priorities={topPriorities} checklist={recurringChecklist} dueToday={dueToday} onToggleChecklist={toggleChecklistTask} />
+              <AgentQueues queues={agentQueues} onSelectTask={openDetailTask} />
+              <div className="min-w-0 overflow-x-auto pb-4">
+                <KanbanBoard
+                  columns={columns}
+                  onSelectTask={openDetailTask}
+                  onDropTask={handleDropTask}
+                  draggingTaskId={draggingTaskId}
+                  onDragStart={setDraggingTaskId}
+                  onDragEnd={() => setDraggingTaskId(null)}
+                />
+              </div>
+            </>
+          )}
         </main>
       </div>
 

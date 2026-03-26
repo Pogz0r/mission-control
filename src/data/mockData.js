@@ -1,5 +1,6 @@
 export const navItems = [
   { label: 'Tasks', icon: 'LayoutDashboard', active: true },
+  { label: 'Discord', icon: 'MessagesSquare' },
   { label: 'Agents', icon: 'Bot' },
   { label: 'Content', icon: 'FileText' },
   { label: 'Approvals', icon: 'ShieldCheck' },
