@@ -1,5 +1,53 @@
 # Dev Log
 
+## 2026-03-26
+
+### Feature: Discord pipeline sync
+
+**Task:** Build Discord → Mission Control live sync
+- Pull from #decisions, #app-ideas, #dev-log
+- Show pipeline status
+- Task cards with status
+
+**What was built:**
+
+1. **API Route** (`app/api/discord/messages/route.ts`)
+   - Fetches messages from Discord channels using bot token
+   - Channels: #decisions (1486485471734534145), #app-ideas (1485126619202064535), #dev-log (1485126620325875733)
+   - Returns transformed message data with author, timestamp, messageUrl
+
+2. **DiscordSync Component** (`src/components/DiscordSync.tsx`)
+   - Shows live feed from all three Discord channels
+   - Auto-refreshes every 60 seconds
+   - Displays task status indicators (Done, In Progress, Blocked, Active)
+   - Links to Discord messages for full context
+
+3. **Navigation Update**
+   - Added "Discord" nav item to sidebar (uses MessagesSquare icon)
+   - Click to switch to Discord pipeline view
+   - Implemented via activeView state in MissionControlApp
+
+4. **Environment Config** (`.env.example`)
+   - Template for DISCORD_BOT_TOKEN
+   - DISCORD_GUILD_ID setting
+
+**To deploy on Vercel:**
+1. Go to Vercel dashboard
+2. Import Pogz0r/mission-control  
+3. Add environment variable: `DISCORD_BOT_TOKEN` = your bot token
+4. Redeploy
+
+**Files changed:**
+- app/api/discord/messages/route.ts (new)
+- src/components/DiscordSync.tsx (new)
+- app/MissionControlApp.jsx (modified)
+- src/components/SidebarNav.jsx (modified)
+- src/data/mockData.js (modified)
+- .env.example (new)
+- tsconfig.json (new, added by Next.js for TypeScript)
+
+**Commit:** 3a13594
+
 ## 2026-03-25
 
 ### Bugfix pass: browser fit + hydration warning handling
